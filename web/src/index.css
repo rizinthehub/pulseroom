@@ -1,0 +1,57 @@
+@import 'tailwindcss';
+@import './styles/tokens.css';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
+/* ─── Tailwind v4 theme extension ─── */
+@theme {
+  --color-base: #0E1014;
+  --color-surface-1: #181B20;
+  --color-surface-2: #1F2329;
+
+  --color-border-default: rgba(255, 255, 255, 0.08);
+  --color-border-hover: rgba(255, 255, 255, 0.16);
+
+  --color-text-primary: #E8EDF2;
+  --color-text-secondary: #9BA1AF;
+  --color-text-tertiary: #6B7280;
+
+  --color-accent: #7C2D6B;
+  --color-accent-hover: #9B3D87;
+  --color-accent-soft: rgba(124, 45, 107, 0.2);
+
+  --color-mood-frozen: #1E3A8A;
+  --color-mood-cool: #0E7490;
+  --color-mood-calm: #1E293B;
+  --color-mood-warming: #7C2D6B;
+  --color-mood-hot: #B91C5C;
+  --color-mood-chaotic: #7F1D1D;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-base);
+  color: var(--color-text-primary);
+  font-family: 'Inter Variable', system-ui, sans-serif;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
