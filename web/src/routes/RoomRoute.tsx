@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useRoomConnection } from '../lib/hooks/useRoomConnection';
 import { useRoomState } from '../lib/state/RoomStateContext';
@@ -14,6 +14,8 @@ import { ConnectionBadge } from '../components/room/ConnectionBadge';
 import { RoomCodeChip } from '../components/room/RoomCodeChip';
 import { ReactionRow } from '../components/room/ReactionRow';
 import { LeaveButton } from '../components/room/LeaveButton';
+import { MuteToggle } from '../components/room/MuteToggle';
+import { AudioBridge } from '../components/room/AudioBridge';
 import { COPY } from '../lib/copy';
 
 export default function RoomRoute() {
@@ -24,6 +26,9 @@ export default function RoomRoute() {
   const state = useRoomState();
   const { socket } = useSocket();
   const [nowMs, setNowMs] = useState(Date.now());
+  const [muted, setMuted] = useState(true);
+
+  const toggleMute = useCallback(() => setMuted((m) => !m), []);
 
   useInterval(() => setNowMs(Date.now()), 500);
 
@@ -40,6 +45,7 @@ export default function RoomRoute() {
 
   return (
     <>
+      <AudioBridge score={state.mood.score} muted={muted} />
       <AmbientBackground mood={state.mood.score} />
       <ParticleField mood={state.mood.score} />
       <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 gap-6">
@@ -55,15 +61,15 @@ export default function RoomRoute() {
           mood: {state.mood.score}
         </div>
 
-        <div className="mt-auto mb-8">
+        <div className="flex items-center gap-3 mt-auto mb-8 flex-col">
           <ReactionRow
             disabled={state.connection !== 'connected'}
             onReact={(key) => socket.emit('reaction:send', { reactionKey: key })}
           />
-        </div>
-
-        <div className="absolute bottom-4 right-4">
-          <LeaveButton />
+          <div className="flex items-center gap-2">
+            <MuteToggle muted={muted} onToggle={toggleMute} />
+            <LeaveButton />
+          </div>
         </div>
       </div>
     </>
