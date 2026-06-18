@@ -6,6 +6,7 @@ import { useSocket } from '../lib/hooks/useSocket';
 import { formatRoomCode } from '../lib/utils';
 import { useInterval } from '../lib/hooks/useInterval';
 import { LoadingState } from '../components/feedback/LoadingState';
+import { ErrorState } from '../components/feedback/ErrorState';
 import { AmbientBackground } from '../components/room/AmbientBackground';
 import { ParticleField } from '../components/room/ParticleField';
 import { PulseCircle } from '../components/room/PulseCircle';
@@ -16,17 +17,24 @@ import { ReactionRow } from '../components/room/ReactionRow';
 import { LeaveButton } from '../components/room/LeaveButton';
 import { MuteToggle } from '../components/room/MuteToggle';
 import { AudioBridge } from '../components/room/AudioBridge';
+import { SnapshotButton } from '../components/room/SnapshotButton';
+import { useToast } from '../components/feedback/ToastProvider';
 import { COPY } from '../lib/copy';
+import { CONNECT_COLD_START_HINT_MS } from '../lib/constants';
+import { useSystemNotice } from '../lib/hooks/useSystemNotice';
 
 export default function RoomRoute() {
   const { roomCode = '' } = useParams<{ roomCode: string }>();
   const code = formatRoomCode(roomCode);
   useRoomConnection(code);
+  useSystemNotice();
 
   const state = useRoomState();
   const { socket } = useSocket();
+  const toast = useToast();
   const [nowMs, setNowMs] = useState(Date.now());
   const [muted, setMuted] = useState(true);
+  const [coldStart, setColdStart] = useState(false);
 
   const toggleMute = useCallback(() => setMuted((m) => !m), []);
 
@@ -37,10 +45,39 @@ export default function RoomRoute() {
     return () => { document.title = 'PulseRoom'; };
   }, [code]);
 
+  useEffect(() => {
+    if (state.connection === 'connecting') {
+      const timer = setTimeout(() => setColdStart(true), CONNECT_COLD_START_HINT_MS);
+      return () => clearTimeout(timer);
+    }
+    setColdStart(false);
+  }, [state.connection]);
+
+  useEffect(() => {
+    if (state.connection === 'reconnecting') {
+      toast.push({ kind: 'info', message: 'Connection lost. Reconnecting…' });
+    }
+  }, [state.connection]);
+
   const history = useMemo(() => state.history, [state.history]);
 
+  if (state.connection === 'disconnected') {
+    return (
+      <ErrorState
+        title={COPY['room.error.lost.title']}
+        message={COPY['room.error.lost.message']}
+        action={{ label: COPY['action.refresh'], onClick: () => window.location.reload() }}
+      />
+    );
+  }
+
   if (state.connection === 'connecting' || state.connection === 'idle') {
-    return <LoadingState title={COPY['room.loading.title']} />;
+    return (
+      <LoadingState
+        title={coldStart ? COPY['room.loading.coldStart'] : COPY['room.loading.title']}
+        message={coldStart ? 'This may take up to 30 seconds on first connection.' : undefined}
+      />
+    );
   }
 
   return (
@@ -67,6 +104,7 @@ export default function RoomRoute() {
             onReact={(key) => socket.emit('reaction:send', { reactionKey: key })}
           />
           <div className="flex items-center gap-2">
+            <SnapshotButton roomCode={code} />
             <MuteToggle muted={muted} onToggle={toggleMute} />
             <LeaveButton />
           </div>
