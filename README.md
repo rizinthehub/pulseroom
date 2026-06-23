@@ -1,4 +1,7 @@
 
+<p align="center">
+  <img src="pulseroomHero.png" alt="PulseRoom" width="100%" />
+</p>
 
 
 <p align="center">
