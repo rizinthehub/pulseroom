@@ -1,7 +1,5 @@
 
-<p align="center">
-  <img src="pulseroom-hero.png" alt="PulseRoom" width="100%" />
-</p>
+
 
 <p align="center">
   <strong>Real-time</strong> · <strong>Anonymous</strong> · <strong>Ephemeral</strong>
